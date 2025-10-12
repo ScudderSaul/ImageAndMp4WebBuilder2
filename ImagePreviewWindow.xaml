@@ -1,0 +1,8 @@
+<Window x:Class="ImageAndMp4WebBuilder.ImagePreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Preview" Height="600" Width="800">
+    <ScrollViewer>
+        <Image x:Name="PreviewImage" Stretch="Uniform" />
+    </ScrollViewer>
+</Window>
