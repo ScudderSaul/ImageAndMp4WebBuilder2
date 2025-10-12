@@ -243,6 +243,7 @@ namespace ImageAndMp4WebBuilder
                 {
                     int perPage = PageSize; // reuse page size
                     int totalPages = Math.Max(1, (int)Math.Ceiling(_allItems.Count / (double)perPage));
+                    string firstPageFullPath = Path.Combine(_currentFolder, $"{baseName}.html");
                     for (int p = 0; p < totalPages; p++)
                     {
                         string fileName = p == 0 ? $"{baseName}.html" : $"{baseName}{p + 1}.html";
@@ -251,12 +252,39 @@ namespace ImageAndMp4WebBuilder
                         string html = BuildHtmlPage(baseName, p, totalPages, pageItems);
                         File.WriteAllText(fullPath, html);
                     }
+                    // After generating pages, ensure subdirectories without their own index html
+                    // get an out.txt pointing back to the generated first page.
+                    CreateOutTxtInSubdirectories(firstPageFullPath);
                     System.Windows.MessageBox.Show("HTML pages generated.");
                 }
                 catch (Exception ex)
                 {
                     System.Windows.MessageBox.Show($"Failed to generate HTML: {ex.Message}");
                 }
+            }
+        }
+
+        private void CreateOutTxtInSubdirectories(string baseHtmlFullPath)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_currentFolder)) return;
+                foreach (var dir in Directory.EnumerateDirectories(_currentFolder))
+                {
+                    var dirName = Path.GetFileName(dir);
+                    if (string.IsNullOrWhiteSpace(dirName)) continue;
+                    var htmlCandidate = Path.Combine(dir, dirName + ".html");
+                    if (!File.Exists(htmlCandidate))
+                    {
+                        string rel = MakeRelativePath(dir, baseHtmlFullPath);
+                        var outPath = Path.Combine(dir, "out.txt");
+                        File.WriteAllText(outPath, rel);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to create out.txt in subdirectories: {ex.Message}");
             }
         }
 
