@@ -300,10 +300,6 @@ namespace ImageAndMp4WebBuilder
             for (int i = 0; i < totalPages; i++)
             {
                 string fn = i == 0 ? $"{baseName}.html" : $"{baseName}{i + 1}.html";
-                if (IgnoreNsfwCheckBox != null && IgnoreNsfwCheckBox.IsChecked == false)
-                {
-                    fn = fn.Replace(".html", "_NSFW.html");
-                }
                 if (i == pageIndex)
                     nav += $"<span class='current'>Page {i + 1}</span> ";
                 else
@@ -317,6 +313,29 @@ namespace ImageAndMp4WebBuilder
             {
                 if (!string.IsNullOrWhiteSpace(_backToUrl))
                 {
+                    // If the current folder name contains 'NSFW' and the back URL is an html file
+                    // that does not already have the _NSFW suffix, append it.
+                    try
+                    {
+                        if (!string.IsNullOrWhiteSpace(_currentFolder))
+                        {
+                            var folderName = new DirectoryInfo(_currentFolder).Name;
+                            if (folderName.Contains("NSFW", StringComparison.OrdinalIgnoreCase)
+                                && _backToUrl.EndsWith(".html", StringComparison.OrdinalIgnoreCase)
+                                && !_backToUrl.EndsWith("_NSFW.html", StringComparison.OrdinalIgnoreCase))
+                            {
+                                int idx = _backToUrl.LastIndexOf('.');
+                                if (idx > 0)
+                                {
+                                    _backToUrl = _backToUrl.Substring(0, idx) + "_NSFW" + _backToUrl.Substring(idx);
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Failed to adjust back URL for NSFW: {ex.Message}");
+                    }
                     string safeUrl = System.Net.WebUtility.HtmlEncode(_backToUrl);
                     indexSection = $"<div class='backto'><button type='button' onclick=\"location.href='{safeUrl}'\">Back</button></div>";
                 }
