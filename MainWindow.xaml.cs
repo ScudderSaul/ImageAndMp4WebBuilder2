@@ -308,7 +308,7 @@ namespace ImageAndMp4WebBuilder
                 if (!string.IsNullOrWhiteSpace(_backToUrl))
                 {
                     string safeUrl = System.Net.WebUtility.HtmlEncode(_backToUrl);
-                    indexSection = $"<h2>Index</h2><div class='backto'><a href='{safeUrl}'>Return</a></div>";
+                    indexSection = $"<h2>Index</h2><div class='backto'><button type='button' onclick=\"location.href='{safeUrl}'\">Back</button></div>";
                 }
                 else
                 {
