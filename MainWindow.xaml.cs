@@ -239,6 +239,12 @@ namespace ImageAndMp4WebBuilder
             {
                 string baseName = inputWindow.InputText.Trim();
                 if (string.IsNullOrEmpty(baseName)) return;
+                // If the user chooses NOT to ignore NSFW (checkbox unchecked), append _NSFW suffix to filenames.
+                if (IgnoreNsfwCheckBox != null && IgnoreNsfwCheckBox.IsChecked == false)
+                {
+                    if (!baseName.EndsWith("_NSFW", StringComparison.OrdinalIgnoreCase))
+                        baseName += "_NSFW";
+                }
                 try
                 {
                     int perPage = PageSize; // reuse page size
@@ -294,6 +300,10 @@ namespace ImageAndMp4WebBuilder
             for (int i = 0; i < totalPages; i++)
             {
                 string fn = i == 0 ? $"{baseName}.html" : $"{baseName}{i + 1}.html";
+                if (IgnoreNsfwCheckBox != null && IgnoreNsfwCheckBox.IsChecked == false)
+                {
+                    fn = fn.Replace(".html", "_NSFW.html");
+                }
                 if (i == pageIndex)
                     nav += $"<span class='current'>Page {i + 1}</span> ";
                 else
@@ -308,11 +318,11 @@ namespace ImageAndMp4WebBuilder
                 if (!string.IsNullOrWhiteSpace(_backToUrl))
                 {
                     string safeUrl = System.Net.WebUtility.HtmlEncode(_backToUrl);
-                    indexSection = $"<h2>Index</h2><div class='backto'><button type='button' onclick=\"location.href='{safeUrl}'\">Back</button></div>";
+                    indexSection = $"<div class='backto'><button type='button' onclick=\"location.href='{safeUrl}'\">Back</button></div>";
                 }
                 else
                 {
-                    indexSection = "<h2>Index</h2>";
+                    indexSection = string.Empty; // formerly showed heading 'Index'; now suppressed per request
                 }
             }
 
