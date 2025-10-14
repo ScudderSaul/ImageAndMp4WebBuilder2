@@ -387,6 +387,11 @@ body {{ font-family: Arial, sans-serif; }}
                 {
                     var dirName = Path.GetFileName(dir);
                     if (string.IsNullOrWhiteSpace(dirName)) continue;
+                    // If Ignore NSFW is enabled, skip directories whose name contains 'NSFW' (case-insensitive)
+                    if (IgnoreNsfwCheckBox != null && IgnoreNsfwCheckBox.IsChecked == true && dirName.Contains("NSFW", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
                     var candidate = Path.Combine(dir, dirName + ".html");
                     if (File.Exists(candidate))
                     {
