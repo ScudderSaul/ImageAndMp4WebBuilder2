@@ -295,9 +295,9 @@ namespace ImageAndMp4WebBuilder
             {
                 string fn = i == 0 ? $"{baseName}.html" : $"{baseName}{i + 1}.html";
                 if (i == pageIndex)
-                    nav += $"<span class='current'>{i + 1}</span> ";
+                    nav += $"<span class='current'>Page {i + 1}</span> ";
                 else
-                    nav += $"<a href='{fn}'>{i + 1}</a> ";
+                    nav += $"<a href='{fn}'>Page {i + 1}</a> ";
             }
             nav += "</div>";
 
