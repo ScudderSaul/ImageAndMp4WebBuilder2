@@ -394,6 +394,7 @@ body {{ font-family: Arial, sans-serif; }}
 </style>
 </head>
 <body>
+<div class='wrapper'>
 <h1>{System.Net.WebUtility.HtmlEncode(baseName)}</h1>
 {nav}
 {indexSection}
@@ -402,6 +403,7 @@ body {{ font-family: Arial, sans-serif; }}
 {thumbs}
 </div>
 {nav}
+</div>
 </body>
 </html>";
         }
