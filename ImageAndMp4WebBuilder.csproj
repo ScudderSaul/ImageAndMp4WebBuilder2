@@ -7,7 +7,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>True</UseWindowsForms>
+    <ApplicationIcon>CatWarsImages_E52D65C7.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="CatWarsImages_E52D65C7.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="LibVLCSharp" Version="3.9.4" />
