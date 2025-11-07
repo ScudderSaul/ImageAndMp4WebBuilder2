@@ -105,7 +105,7 @@ namespace ImageAndMp4WebBuilder
             foreach (var file in files)
             {
                 bool isVideo = videoExtensions.Contains(Path.GetExtension(file));
-                string thumbName = Path.GetFileNameWithoutExtension(file) + "_thumb.jpg"; // unify format
+                string thumbName = Path.GetFileNameWithoutExtension(file) + "_thumb.png"; // unify PNG format
                 string thumbPath = Path.Combine(thumbDir, thumbName);
                 if (!File.Exists(thumbPath))
                 {
@@ -142,7 +142,7 @@ namespace ImageAndMp4WebBuilder
             var frame = decoder.Frames[0];
             double scale = (double)width / frame.PixelWidth;
             var resized = new TransformedBitmap(frame, new System.Windows.Media.ScaleTransform(scale, scale));
-            var encoder = new JpegBitmapEncoder();
+            var encoder = new PngBitmapEncoder();
             encoder.Frames.Add(BitmapFrame.Create(resized));
             using var outStream = new FileStream(destPath, FileMode.Create, FileAccess.Write, FileShare.None);
             encoder.Save(outStream);
@@ -164,6 +164,7 @@ namespace ImageAndMp4WebBuilder
             System.Threading.Thread.Sleep(500);
             string tempDir = Path.GetDirectoryName(destPath)!;
             Directory.CreateDirectory(tempDir);
+            // Save snapshot as PNG by using .png destination path
             mp.TakeSnapshot(0, destPath, 200, 0);
             mp.Stop();
         }
@@ -364,33 +365,55 @@ namespace ImageAndMp4WebBuilder
 
             string thumbs = items.Count == 0
                 ? "<div class='empty'>No images or videos found in this folder.</div>"
-                : string.Join("", items.Select(it =>
+                : string.Join("", items.Select((it, idx) =>
                 {
                     string relThumb = MakeRelativePath(_currentFolder!, it.ThumbnailPath);
                     string relOriginal = MakeRelativePath(_currentFolder!, it.OriginalPath);
-                    string borderColor = it.IsVideo ? "green" : "blue";
-                    return $"<div class='thumb'><a href='{relOriginal}'><img src='{relThumb}' style='width:200px;border:3px solid {borderColor};border-radius:4px;'/></a><div class='name'>{System.Net.WebUtility.HtmlEncode(Path.GetFileName(it.OriginalPath))}</div></div>";
+                    string fileName = System.Net.WebUtility.HtmlEncode(Path.GetFileName(it.OriginalPath));
+                    if (it.IsVideo)
+                    {
+                        return $"<div class='thumb video'><a href='{relOriginal}'><div class='thumb-inner'><img src='{relThumb}' alt='{fileName}' loading='lazy' decoding='async' /><span class='badge'>▶</span></div></a><div class='name'>{fileName}</div></div>";
+                    }
+                    else
+                    {
+                        string lbId = $"lb_{pageIndex}_{idx}";
+                        var thumbHtml = $"<div class='thumb image'><a href='#{lbId}'><div class='thumb-inner'><img src='{relThumb}' alt='{fileName}' loading='lazy' decoding='async' /></div></a><div class='name'>{fileName}</div></div>";
+                        var overlayHtml = $"<div id='{lbId}' class='lightbox'><a href='#' class='lb-close'><img src='{relOriginal}' alt='{fileName}'/></a></div>";
+                        return thumbHtml + overlayHtml;
+                    }
                 }));
 
             return $@"<!DOCTYPE html>
 <html>
 <head>
 <meta charset='utf-8'/>
+<meta name='viewport' content='width=device-width, initial-scale=1'/>
 <title>{System.Net.WebUtility.HtmlEncode(baseName)} - Page {pageIndex + 1}</title>
 <style>
-body {{ font-family: Arial, sans-serif; }}
-.nav {{ margin:10px 0; }}
-.nav a {{ margin-right:5px; text-decoration:none; }}
+:root {{ --primary:#3366cc; --text:#1a202c; --muted:#718096; --chip-bg:#eef2ff; }}
+body {{ font-family: Arial, Helvetica, sans-serif; color:var(--text); margin:0; }}
+.wrapper {{ max-width:1200px; margin:0 auto; padding:12px; }}
+.nav {{ margin:10px 0; position:sticky; top:0; background:#fff; padding:8px 0; z-index:5; }}
+.nav a {{ margin-right:6px; text-decoration:none; color:var(--primary); }}
 .nav .current {{ font-weight:bold; }}
-.container {{ display:flex; flex-wrap:wrap; }}
-.thumb {{ width:210px; margin:5px; text-align:center; font-size:12px; }}
-.name {{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }}
-.backto a {{ font-weight:bold; color:#3366cc; text-decoration:none; }}
+.container {{ display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap:12px; align-items:start; }}
+.thumb {{ text-align:center; font-size:12px; }}
+.thumb-inner {{ position:relative; border:3px solid transparent; border-radius:6px; overflow:hidden; }}
+.thumb.image .thumb-inner {{ border-color:#2b6cb0; }}
+.thumb.video .thumb-inner {{ border-color:#2f855a; }}
+.thumb img {{ width:100%; height:auto; display:block; transition:transform .15s ease, box-shadow .15s ease; }}
+.thumb a:hover img {{ transform: translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,.15); }}
+.badge {{ position:absolute; right:8px; bottom:8px; background:rgba(0,0,0,0.65); color:#fff; font-weight:bold; font-size:12px; padding:2px 6px; border-radius:10px; }}
+.name {{ margin-top:4px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }}
+.backto a {{ font-weight:bold; color:var(--primary); text-decoration:none; }}
 .backto a:hover {{ text-decoration:underline; }}
 .sublinks {{ margin:10px 0; font-size:14px; }}
 .sublinks .label {{ font-weight:bold; margin-right:6px; }}
-.sublinks a {{ margin-right:8px; text-decoration:none; color:#3366cc; }}
+.sublinks a {{ margin-right:8px; text-decoration:none; color:var(--primary); background:var(--chip-bg); padding:2px 8px; border-radius:999px; display:inline-block; margin-bottom:6px; }}
 .sublinks a:hover {{ text-decoration:underline; }}
+/* Lightbox overlay */
+.lightbox {{ display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); align-items:center; justify-content:center; z-index:9999; cursor: zoom-out; }}
+.lightbox img {{ max-width:95vw; max-height:95vh; box-shadow:0 0 24px rgba(255,255,255,0.35); border-radius:4px; }}
 </style>
 </head>
 <body>
@@ -404,6 +427,24 @@ body {{ font-family: Arial, sans-serif; }}
 </div>
 {nav}
 </div>
+<div id='lb' class='lightbox' onclick='closeLightbox()'>
+  <img id='lbimg' src='' alt='preview' />
+</div>
+<script>
+function openLightbox(src){{
+  var ov=document.getElementById('lb');
+  var im=document.getElementById('lbimg');
+  if(im){{ im.src=src; }}
+  if(ov){{ ov.style.display='flex'; }}
+}}
+function closeLightbox(){{
+  var ov=document.getElementById('lb');
+  var im=document.getElementById('lbimg');
+  if(im){{ im.src=''; }}
+  if(ov){{ ov.style.display='none'; }}
+}}
+document.addEventListener('keydown', function(e){{ if(e.key==='Escape'){{ closeLightbox(); }} }});
+</script>
 </body>
 </html>";
         }
