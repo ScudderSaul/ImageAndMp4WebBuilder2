@@ -376,10 +376,8 @@ namespace ImageAndMp4WebBuilder
                     }
                     else
                     {
-                        string lbId = $"lb_{pageIndex}_{idx}";
-                        var thumbHtml = $"<div class='thumb image'><a href='#{lbId}'><div class='thumb-inner'><img src='{relThumb}' alt='{fileName}' loading='lazy' decoding='async' /></div></a><div class='name'>{fileName}</div></div>";
-                        var overlayHtml = $"<div id='{lbId}' class='lightbox'><a href='#' class='lb-close'><img src='{relOriginal}' alt='{fileName}'/></a></div>";
-                        return thumbHtml + overlayHtml;
+                        // Use JS lightbox overlay for images
+                        return $"<div class='thumb image'><a href='#' onclick=\"openLightbox('{relOriginal}');return false;\"><div class='thumb-inner'><img src='{relThumb}' alt='{fileName}' loading='lazy' decoding='async' /></div></a><div class='name'>{fileName}</div></div>";
                     }
                 }));
 
