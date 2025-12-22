@@ -29,6 +29,7 @@ namespace ImageAndMp4WebBuilder
             UpdatePaging();
         }
 
+        // Ctrl+H Help command handler
         private void HelpCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             var wnd = new HelpWindow
@@ -38,6 +39,7 @@ namespace ImageAndMp4WebBuilder
             wnd.ShowDialog();
         }
 
+        // Select a folder and generate/refresh thumbnails in the background
         private async void SelectFolderButton_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new System.Windows.Forms.FolderBrowserDialog();
@@ -48,7 +50,7 @@ namespace ImageAndMp4WebBuilder
                 StatusText.Text = "Generating thumbnails...";
                 try
                 {
-                    // Load backto URL (look for both naming variants)
+                    // Load optional backlink URL from out.txt/out .txt
                     _backToUrl = ReadBackToUrl(_currentFolder);
                     await Task.Run(() => LoadAndGenerateThumbnails(dlg.SelectedPath));
                     StatusText.Text = $"Loaded {_allItems.Count} items";
@@ -63,6 +65,7 @@ namespace ImageAndMp4WebBuilder
             }
         }
 
+        // Reads the first non-empty line of out.txt (or out .txt) if present; used for the HTML Back button.
         private string? ReadBackToUrl(string folder)
         {
             try
@@ -87,6 +90,7 @@ namespace ImageAndMp4WebBuilder
             return null;
         }
 
+        // Enumerates supported media files in the folder and creates thumbnails (PNG) in /thumbnails.
         private void LoadAndGenerateThumbnails(string folder)
         {
             _allItems.Clear();
@@ -135,6 +139,7 @@ namespace ImageAndMp4WebBuilder
             }
         }
 
+        // Creates a PNG thumbnail for an image by decoding and scaling to a fixed width.
         private void CreateImageThumbnail(string sourcePath, string destPath, int width)
         {
             using var fs = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -148,6 +153,7 @@ namespace ImageAndMp4WebBuilder
             encoder.Save(outStream);
         }
 
+        // Generates a thumbnail from an MP4 by seeking a little into the video and taking a LibVLC snapshot.
         private void CreateVideoThumbnail(string videoPath, string destPath)
         {
             if (_libVlc == null) throw new InvalidOperationException("LibVLC not initialized");
@@ -169,6 +175,7 @@ namespace ImageAndMp4WebBuilder
             mp.Stop();
         }
 
+        // Updates the on-screen thumbnails view for the current page.
         private void UpdatePaging()
         {
             Dispatcher.Invoke(() =>
@@ -196,6 +203,9 @@ namespace ImageAndMp4WebBuilder
             UpdatePaging();
         }
 
+        // Opens selected media:
+        // - videos via the default system handler
+        // - images via the in-app preview window
         private void Thumbnail_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (sender is System.Windows.Controls.Image img && img.DataContext is ThumbnailItem item)
@@ -226,6 +236,7 @@ namespace ImageAndMp4WebBuilder
             }
         }
 
+        // Exports a paged HTML gallery for the currently selected folder.
         private void ExportHtmlButton_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(_currentFolder))
@@ -271,6 +282,8 @@ namespace ImageAndMp4WebBuilder
             }
         }
 
+        // Writes out.txt into immediate subdirectories that don't have their own "SubdirName.html".
+        // The out.txt contains a relative link back to the parent exported page.
         private void CreateOutTxtInSubdirectories(string baseHtmlFullPath)
         {
             try
@@ -295,6 +308,7 @@ namespace ImageAndMp4WebBuilder
             }
         }
 
+        // Builds one HTML page including paging navigation, optional back link, optional subfolder links, and thumbnails.
         private string BuildHtmlPage(string baseName, int pageIndex, int totalPages, List<ThumbnailItem> items)
         {
             string nav = "<div class='nav'>";
@@ -308,7 +322,6 @@ namespace ImageAndMp4WebBuilder
             }
             nav += "</div>";
 
-            // Index heading plus optional backto link.
             string indexSection = string.Empty;
             if (pageIndex == 0)
             {
@@ -340,14 +353,8 @@ namespace ImageAndMp4WebBuilder
                     string safeUrl = System.Net.WebUtility.HtmlEncode(_backToUrl);
                     indexSection = $"<div class='backto'><button type='button' onclick=\"location.href='{safeUrl}'\">Back</button></div>";
                 }
-                else
-                {
-                    indexSection = string.Empty; // formerly showed heading 'Index'; now suppressed per request
-                }
             }
 
-            // Subdirectory links section: if any subdirectory contains a .html file with the same name as the subdirectory,
-            // include a link to it.
             string subdirsSection = string.Empty;
             try
             {
@@ -374,11 +381,9 @@ namespace ImageAndMp4WebBuilder
                     {
                         return $"<div class='thumb video'><a href='{relOriginal}'><div class='thumb-inner'><img src='{relThumb}' alt='{fileName}' loading='lazy' decoding='async' /><span class='badge'>▶</span></div></a><div class='name'>{fileName}</div></div>";
                     }
-                    else
-                    {
-                        // Use JS lightbox overlay for images
-                        return $"<div class='thumb image'><a href='#' onclick=\"openLightbox('{relOriginal}');return false;\"><div class='thumb-inner'><img src='{relThumb}' alt='{fileName}' loading='lazy' decoding='async' /></div></a><div class='name'>{fileName}</div></div>";
-                    }
+
+                    // Use JS lightbox overlay for images
+                    return $"<div class='thumb image'><a href='#' onclick=\"openLightbox('{relOriginal}');return false;\"><div class='thumb-inner'><img src='{relThumb}' alt='{fileName}' loading='lazy' decoding='async' /></div></a><div class='name'>{fileName}</div></div>";
                 }));
 
             return $@"<!DOCTYPE html>
