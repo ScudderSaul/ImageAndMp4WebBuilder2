@@ -370,6 +370,13 @@ namespace ImageAndMp4WebBuilder
                 Debug.WriteLine($"Failed to gather subdirectory links: {ex.Message}");
             }
 
+            var imageSources = items
+                .Where(it => !it.IsVideo)
+                .Select(it => MakeRelativePath(_currentFolder!, it.OriginalPath))
+                .ToList();
+            string imageSourcesJs = string.Join(", ", imageSources.Select(src => $"'{EscapeJsString(src)}'"));
+            int imageIndex = -1;
+
             string thumbs = items.Count == 0
                 ? "<div class='empty'>No images or videos found in this folder.</div>"
                 : string.Join("", items.Select((it, idx) =>
@@ -383,7 +390,8 @@ namespace ImageAndMp4WebBuilder
                     }
 
                     // Use JS lightbox overlay for images
-                    return $"<div class='thumb image'><a href='#' onclick=\"openLightbox('{relOriginal}');return false;\"><div class='thumb-inner'><img src='{relThumb}' alt='{fileName}' loading='lazy' decoding='async' /></div></a><div class='name'>{fileName}</div></div>";
+                    imageIndex++;
+                    return $"<div class='thumb image'><a href='#' onclick=\"openLightboxByIndex({imageIndex});return false;\"><div class='thumb-inner'><img src='{relThumb}' alt='{fileName}' loading='lazy' decoding='async' /></div></a><div class='name'>{fileName}</div></div>";
                 }));
 
             return $@"<!DOCTYPE html>
@@ -434,19 +442,53 @@ body {{ font-family: Arial, Helvetica, sans-serif; color:var(--text); margin:0; 
   <img id='lbimg' src='' alt='preview' />
 </div>
 <script>
+const imageSources = [{imageSourcesJs}];
+let currentImageIndex = -1;
+
 function openLightbox(src){{
   var ov=document.getElementById('lb');
   var im=document.getElementById('lbimg');
   if(im){{ im.src=src; }}
   if(ov){{ ov.style.display='flex'; }}
 }}
+
+function openLightboxByIndex(index){{
+  if(index < 0 || index >= imageSources.length){{ return; }}
+  currentImageIndex = index;
+  openLightbox(imageSources[index]);
+}}
+
 function closeLightbox(){{
   var ov=document.getElementById('lb');
   var im=document.getElementById('lbimg');
   if(im){{ im.src=''; }}
   if(ov){{ ov.style.display='none'; }}
+  currentImageIndex = -1;
 }}
-document.addEventListener('keydown', function(e){{ if(e.key==='Escape'){{ closeLightbox(); }} }});
+function showAdjacentImage(offset){{
+  if(currentImageIndex < 0 || imageSources.length === 0){{ return; }}
+  var nextIndex = currentImageIndex + offset;
+  if(nextIndex < 0){{ nextIndex = imageSources.length - 1; }}
+  if(nextIndex >= imageSources.length){{ nextIndex = 0; }}
+  openLightboxByIndex(nextIndex);
+}}
+
+document.addEventListener('keydown', function(e){{
+  if(currentImageIndex < 0){{
+    if(e.key==='Escape'){{ closeLightbox(); }}
+    return;
+  }}
+
+  if(e.key==='Escape'){{
+    closeLightbox();
+  }}
+  else if(e.key==='ArrowRight'){{
+    showAdjacentImage(1);
+  }}
+  else if(e.key==='ArrowLeft'){{
+    showAdjacentImage(-1);
+  }}
+}});
 </script>
 </body>
 </html>";
@@ -494,6 +536,11 @@ document.addEventListener('keydown', function(e){{ if(e.key==='Escape'){{ closeL
             if (!path.EndsWith(Path.DirectorySeparatorChar))
                 return path + Path.DirectorySeparatorChar;
             return path;
+        }
+
+        private static string EscapeJsString(string value)
+        {
+            return value.Replace("\\", "\\\\").Replace("'", "\\'");
         }
     }
 }
