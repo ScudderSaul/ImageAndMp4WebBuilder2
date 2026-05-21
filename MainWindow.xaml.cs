@@ -436,7 +436,6 @@ body {{ font-family: Arial, Helvetica, sans-serif; color:var(--text); margin:0; 
 <div class='container'>
 {thumbs}
 </div>
-{nav}
 </div>
 <div id='lb' class='lightbox' onclick='closeLightbox()'>
   <img id='lbimg' src='' alt='preview' />
