@@ -22,11 +22,13 @@
             <Button x:Name="ExportHtmlButton" Content="Export HTML" Click="ExportHtmlButton_Click" Width="100" Margin="0,0,15,0" />
             <Button x:Name="PrevPageButton" Content="&lt; Prev" Width="70" Click="PrevPageButton_Click" Margin="0,0,5,0" />
             <Button x:Name="NextPageButton" Content="Next >" Width="70" Click="NextPageButton_Click" Margin="0,0,15,0" />
+            <Button x:Name="HelpButton" Content="Help" Width="60" Click="HelpButton_Click" Margin="0,0,15,0" />
             <CheckBox x:Name="IgnoreNsfwCheckBox" Content="Ignore NSFW" IsChecked="True" VerticalAlignment="Center" Margin="0,0,15,0" />
             <TextBlock x:Name="PageInfoText" VerticalAlignment="Center" Margin="0,0,20,0" />
             <TextBlock Text="Folder:" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,5,0" />
-            <TextBlock x:Name="SelectedFolderText" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Width="400" Margin="0,0,15,0" />
-            <TextBlock x:Name="StatusText" VerticalAlignment="Center" Foreground="DarkGreen" />
+            <TextBlock x:Name="SelectedFolderText" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Width="300" Margin="0,0,15,0" />
+            <TextBlock x:Name="StatusText" VerticalAlignment="Center" Foreground="DarkGreen" Margin="0,0,10,0" />
+            <ProgressBar x:Name="GenerationProgressBar" Width="120" Height="16" VerticalAlignment="Center" Visibility="Collapsed" Minimum="0" Maximum="100" />
         </StackPanel>
         <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
             <ItemsControl x:Name="ThumbnailsItemsControl">

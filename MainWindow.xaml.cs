@@ -32,6 +32,17 @@ namespace ImageAndMp4WebBuilder
         // Ctrl+H Help command handler
         private void HelpCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
+            ShowHelpWindow();
+        }
+
+        // Help button click handler
+        private void HelpButton_Click(object sender, RoutedEventArgs e)
+        {
+            ShowHelpWindow();
+        }
+
+        private void ShowHelpWindow()
+        {
             var wnd = new HelpWindow
             {
                 Owner = this
@@ -48,17 +59,34 @@ namespace ImageAndMp4WebBuilder
                 _currentFolder = dlg.SelectedPath;
                 SelectedFolderText.Text = dlg.SelectedPath;
                 StatusText.Text = "Generating thumbnails...";
+                GenerationProgressBar.Value = 0;
+                GenerationProgressBar.Visibility = Visibility.Visible;
+
+                var progress = new Progress<(int current, int total)>(data =>
+                {
+                    StatusText.Text = $"Generated {data.current} of {data.total} thumbnails";
+                    if (data.total > 0)
+                    {
+                        GenerationProgressBar.Maximum = data.total;
+                        GenerationProgressBar.Value = data.current;
+                    }
+                });
+
                 try
                 {
                     // Load optional backlink URL from out.txt/out .txt
                     _backToUrl = ReadBackToUrl(_currentFolder);
-                    await Task.Run(() => LoadAndGenerateThumbnails(dlg.SelectedPath));
+                    await Task.Run(() => LoadAndGenerateThumbnails(dlg.SelectedPath, progress));
                     StatusText.Text = $"Loaded {_allItems.Count} items";
                 }
                 catch (Exception ex)
                 {
                     StatusText.Text = "Error";
                     System.Windows.MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                finally
+                {
+                    GenerationProgressBar.Visibility = Visibility.Collapsed;
                 }
                 _currentPage = 0;
                 UpdatePaging();
@@ -91,7 +119,7 @@ namespace ImageAndMp4WebBuilder
         }
 
         // Enumerates supported media files in the folder and creates thumbnails (PNG) in /thumbnails.
-        private void LoadAndGenerateThumbnails(string folder)
+        private void LoadAndGenerateThumbnails(string folder, IProgress<(int current, int total)> progress)
         {
             _allItems.Clear();
             string thumbDir = Path.Combine(folder, "thumbnails");
@@ -106,8 +134,12 @@ namespace ImageAndMp4WebBuilder
                 .ThenBy(f => f, StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
-            foreach (var file in files)
+            int totalFiles = files.Count;
+            progress.Report((0, totalFiles));
+
+            for (int i = 0; i < files.Count; i++)
             {
+                var file = files[i];
                 bool isVideo = videoExtensions.Contains(Path.GetExtension(file));
                 string thumbName = Path.GetFileNameWithoutExtension(file) + "_thumb.png"; // unify PNG format
                 string thumbPath = Path.Combine(thumbDir, thumbName);
@@ -127,6 +159,7 @@ namespace ImageAndMp4WebBuilder
                     catch (Exception ex)
                     {
                         Debug.WriteLine($"Thumbnail failed for {file}: {ex.Message}");
+                        progress.Report((i + 1, totalFiles));
                         continue;
                     }
                 }
@@ -136,6 +169,7 @@ namespace ImageAndMp4WebBuilder
                     ThumbnailPath = thumbPath,
                     IsVideo = isVideo
                 });
+                progress.Report((i + 1, totalFiles));
             }
         }
 
