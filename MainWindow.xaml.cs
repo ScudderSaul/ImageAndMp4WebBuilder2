@@ -296,10 +296,28 @@ namespace ImageAndMp4WebBuilder
                     int perPage = PageSize; // reuse page size
                     int totalPages = Math.Max(1, (int)Math.Ceiling(_allItems.Count / (double)perPage));
                     string firstPageFullPath = Path.Combine(_currentFolder, $"{baseName}.html");
+
+                    // Ensure backup folder exists and backup existing matching HTML files first
+                    string backupDir = Path.Combine(_currentFolder, "HtmlBackup");
+                    bool hasCheckedBackupDir = false;
+
                     for (int p = 0; p < totalPages; p++)
                     {
                         string fileName = p == 0 ? $"{baseName}.html" : $"{baseName}{p + 1}.html";
                         string fullPath = Path.Combine(_currentFolder, fileName);
+
+                        if (File.Exists(fullPath))
+                        {
+                            if (!hasCheckedBackupDir)
+                            {
+                                Directory.CreateDirectory(backupDir);
+                                hasCheckedBackupDir = true;
+                            }
+                            string destPath = Path.Combine(backupDir, fileName);
+                            // If backup file already exists, overwrite it with the current copy before creating new
+                            File.Move(fullPath, destPath, overwrite: true);
+                        }
+
                         var pageItems = _allItems.Skip(p * perPage).Take(perPage).ToList();
                         string html = BuildHtmlPage(baseName, p, totalPages, pageItems);
                         File.WriteAllText(fullPath, html);
