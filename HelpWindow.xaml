@@ -18,19 +18,25 @@
                 </TextBlock>
                 <Separator Margin="0,8,0,8" />
                 <TextBlock TextWrapping="Wrap">
-                    1. Select Folder: Choose a folder. Thumbnails will be generated if missing.
+                    1. Select Folder: Choose a folder. Thumbnails will be generated dynamically if missing and a loading progress bar will appear.
                 </TextBlock>
-                <TextBlock TextWrapping="Wrap">
-                    2. Navigation: Use Prev/Next to change pages.
+                <TextBlock TextWrapping="Wrap" Margin="0,4,0,0">
+                    2. Navigation: Use Prev/Next to change pages. Use left and right arrow keys to easily navigate between images in full-screen lightbox.
                 </TextBlock>
-                <TextBlock TextWrapping="Wrap">
-                    3. Open Items: Click a thumbnail. Images open in a preview; videos open with your default player.
+                <TextBlock TextWrapping="Wrap" Margin="0,4,0,0">
+                    3. Open Items: Click a thumbnail. Images open in a preview inside the app; videos open with your default system player.
                 </TextBlock>
-                <TextBlock TextWrapping="Wrap">
-                    4. Export HTML: Generates paged HTML files with links to originals and thumbnails. If an 'out.txt' exists with a URL, page 1 shows a Return link.
+                <TextBlock TextWrapping="Wrap" Margin="0,4,0,0">
+                    4. Ignore NSFW Checkbox: If checked, subdirectories with 'NSFW' in their name are ignored during export. If unchecked, '_NSFW' is automatically appended to the generated page filenames.
                 </TextBlock>
-                <TextBlock TextWrapping="Wrap">
-                    5. Keyboard: Press Ctrl+H anytime to show this help.
+                <TextBlock TextWrapping="Wrap" Margin="0,4,0,0">
+                    5. Export HTML: Generates paged HTML files. Existing pages are automatically moved to 'HtmlBackup'. If subfolders exist without an HTML index file, an 'out.txt' relative link to the main index is generated.
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap" Margin="0,4,0,0">
+                    6. Subdirectory Integration: If any subdirectory contains an HTML index file named exactly 'SubfolderName.html', a quick link to it will be embedded under the 'Subfolders:' header on the generated index pages.
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap" Margin="0,4,0,0">
+                    7. Keyboard: Press Ctrl+H anytime to show this help, or use the dedicated toolbar Help button.
                 </TextBlock>
             </StackPanel>
         </ScrollViewer>
