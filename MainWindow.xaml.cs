@@ -438,7 +438,8 @@ namespace ImageAndMp4WebBuilder
                     string fileName = System.Net.WebUtility.HtmlEncode(Path.GetFileName(it.OriginalPath));
                     if (it.IsVideo)
                     {
-                        return $"<div class='thumb video'><a href='{relOriginal}'><div class='thumb-inner'><img src='{relThumb}' alt='{fileName}' loading='lazy' decoding='async' /><span class='badge'>▶</span></div></a><div class='name'>{fileName}</div></div>";
+                        // Videos open in a new window/tab with target="_blank" plus security attributes
+                        return $"<div class='thumb video'><a href='{relOriginal}' target='_blank' rel='noopener noreferrer'><div class='thumb-inner'><img src='{relThumb}' alt='{fileName}' loading='lazy' decoding='async' /><span class='badge'>▶</span></div></a><div class='name'>{fileName}</div></div>";
                     }
 
                     // Use JS lightbox overlay for images
